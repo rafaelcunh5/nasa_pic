@@ -1,0 +1,47 @@
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClients;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+public class NasaApodIntegration {
+
+    public static void main(String[] args) {
+        String apiKey = "https://api.nasa.gov/planetary/apod";
+        String apiUrl = "https://api.nasa.gov/planetary/apod?api_key=" + apiKey;
+
+        HttpClient httpClient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(apiUrl);
+
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+
+            if (response.getStatusLine().getStatusCode() == 200) {
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(response.getEntity().getContent()));
+
+                StringBuilder result = new StringBuilder();
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    result.append(line);
+                }
+
+                JsonObject jsonResponse = JsonParser.parseString(result.toString()).getAsJsonObject();
+
+                // Exibindo a URL da imagem no console
+                String imageUrl = jsonResponse.get("url").getAsString();
+                System.out.println("Imagem do dia: " + imageUrl);
+
+            } else {
+                System.err.println("Falha na requisição: " + response.getStatusLine().getReasonPhrase());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
